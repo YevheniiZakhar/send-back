@@ -2,7 +2,7 @@
 {
     [Index(nameof(Name), IsUnique = true)]
     public class Ad
-    {
+    {   
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Name field is required")]
@@ -45,8 +45,6 @@
         //public IFormFile FrontFile6 { get; set; }
         //[NotMapped]
         //public IFormFile FrontFile7 { get; set; }
-        //[NotMapped]
-        //public IFormFile FrontFile8 { get; set; }
 
         public string? Phone { get; set; }
 

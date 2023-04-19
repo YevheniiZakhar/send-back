@@ -1,3 +1,4 @@
+using Azure;
 using Land.Models.Help;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -126,7 +127,18 @@ namespace Land.Controllers
         [HttpGet("byId")]
         public Ad GetById(int id)
         {
-            return _context.Ad.FirstOrDefault(x => x.Id == id); // GetPaged(2,3);
+            // TODO не показывать район если это город по примеру Кривой Рог, Днепропетровская а не Кривой Рог, Криворожский, Днепропетровская
+            var ad = _context.Ad.FirstOrDefault(x => x.Id == id);
+            if (ad.LocalityId != 0)
+            {
+                var locality = _context.Locality.FromSqlRaw("call GetLocalityById({0})", ad.LocalityId).ToList();
+                var response = new AdById(ad);
+                response.Locality = locality.FirstOrDefault().Locality;
+                return response;
+            }
+            
+            return ad;
+            // GetPaged(2,3);
             //string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "file-upload-article-cover.png");
             //var b = System.IO.File.ReadAllBytes(path);
             //items.ForEach(i => i.ByteFiles = b);
