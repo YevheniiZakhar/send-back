@@ -21,6 +21,8 @@ builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 builder.Services.AddControllers();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// TODO add async await
+// TODO https
 builder.Services.AddDbContext<LandDbContext>(options =>
 {
     options.UseMySql("server=localhost;database=land;user=root;password=1234;port=3306;", ServerVersion.AutoDetect("server=localhost;database=land;user=root;password=1234;port=3306;"));

@@ -1,4 +1,5 @@
 using Azure;
+using Land.Models;
 using Land.Models.Help;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -38,29 +39,29 @@ namespace Land.Controllers
         {
             // TODO наполнить базу данных до 1000 обьявлений
             // TODO сделать привязку реакт к паганации на сервере через ентити фреймворк и таблицу в майсклюел обьявлений
-            return await _context.Locality.FromSqlRaw("call GetLocality1({0})", str).ToListAsync();
+            return await _context.Locality.FromSqlRaw("call GetLocality({0})", str).ToListAsync();
         }
 
         [HttpPost("filter")]
         public PagedResult<Ad> Post([FromBody] GetAdRequest request) //[FromBody] GetAdRequest request
         {
-                IQueryable<Ad> items = null;
+                IQueryable<Ad> items = _context.Ad;
 
             if (!string.IsNullOrEmpty(request.SearchInput))
             {
-                items = _context.Ad.Where(i => i.Name.Contains(request.SearchInput));
+                items = items.Where(i => i.Name.Contains(request.SearchInput));
             }
 
             if (request.SearchLocality != 0)
             {
-                items = _context.Ad.Where(i => i.LocalityId == request.SearchLocality);
+                items = items.Where(i => i.LocalityId == request.SearchLocality);
             }
 
-            if (items == null)
-                items = _context.Ad;
-
             var result = items.GetPaged(request.Page.Value, request.PageSize.Value);
-
+            var locIds = string.Join(",", result.Results.Select(i => i.LocalityId));
+            var localities = _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", locIds).ToDictionary(x => x.Id, x => x.Locality);
+            result.Results.ForEach(i => i.Locality = localities[i.LocalityId.Value]);
+            //locality.
             //var emailAddressParam = new SqlParameter("@str", "Киї");
 
             //var users = _context
@@ -71,7 +72,7 @@ namespace Land.Controllers
 
             // var str = new MySqlParameter("str", "Киї");
             // _context.Database.ExecuteSqlRaw()
-            
+
             //var kkkk = _context.SomeModels.FromSqlRaw("CALL land.GetLocality1").ToList();
             //using (var con = new MySqlConnection("server=localhost;database=land;user=root;password=1234;port=3306;"))
             //{ // https://www.codeproject.com/Questions/3432607/Csharp-async-await-not-working-with-mysql
@@ -83,7 +84,7 @@ namespace Land.Controllers
             //        cmd.Parameters.AddWithValue("@str", "Киї");
             //        using (var reader = cmd.ExecuteReader())
             //        {
-                        
+
             //            while (reader.Read())
             //            {
             //                list.Add(reader["Locality"].ToString());
@@ -129,9 +130,9 @@ namespace Land.Controllers
         {
             // TODO не показывать район если это город по примеру Кривой Рог, Днепропетровская а не Кривой Рог, Криворожский, Днепропетровская
             var ad = _context.Ad.FirstOrDefault(x => x.Id == id);
-            if (ad.LocalityId != 0)
+            if (ad != null && ad.LocalityId != null && ad.LocalityId != 0)
             {
-                var locality = _context.Locality.FromSqlRaw("call GetLocalityById({0})", ad.LocalityId).ToList();
+                var locality = _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", ad.LocalityId).ToList();
                 var response = new AdById(ad);
                 response.Locality = locality.FirstOrDefault().Locality;
                 return response;

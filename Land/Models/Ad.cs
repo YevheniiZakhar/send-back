@@ -43,8 +43,8 @@
         //public IFormFile FrontFile5 { get; set; }
         //[NotMapped]
         //public IFormFile FrontFile6 { get; set; }
-        //[NotMapped]
-        //public IFormFile FrontFile7 { get; set; }
+        [NotMapped]
+        public string? Locality { get; set; }
 
         public string? Phone { get; set; }
 
