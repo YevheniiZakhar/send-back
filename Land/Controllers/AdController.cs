@@ -170,8 +170,11 @@ namespace Land.Controllers
         }
 
         [HttpPost]
-        public ActionResult Post([FromForm] Ad ad)
+        public async Task<ActionResult> Post([FromForm] Ad ad)
         {
+            if (ad == null)
+                return StatusCode(StatusCodes.Status500InternalServerError);
+
             try
              {
                 var files = Request.Form.Files;
@@ -181,14 +184,14 @@ namespace Land.Controllers
                     {
                         using (var ms = new MemoryStream()) // do async https://stackoverflow.com/questions/20805396/asynchronous-memory-streaming-approach-which-of-the-following
                         {
-                            files[i].CopyTo(ms);
-                            ad.GetType().GetProperty($"File{i + 1}").SetValue(ad, ms.ToArray());
+                            await files[i].CopyToAsync(ms);
+                            ad.GetType().GetProperty($"File{i + 1}")?.SetValue(ad, ms.ToArray());
                         }
                     }
                 }
                 ad.CreatedDate = DateTime.Now;
-                _context.Ad.Add(ad);
-                _context.SaveChanges();
+                await _context.Ad.AddAsync(ad);
+                await _context.SaveChangesAsync();
                 //string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", ad.FileName);
 
                 //using (var stream = new FileStream(path, FileMode.Create))
@@ -197,6 +200,64 @@ namespace Land.Controllers
                 //}
 
                 return StatusCode(StatusCodes.Status201Created);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpPut]
+        public async Task<ActionResult> Put([FromForm] Ad ad)
+        {
+            if (ad == null || ad.Id == 0) 
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            try
+            {
+                var entity = await _context.Ad.FirstOrDefaultAsync(i => i.Id == ad.Id);
+
+                if (entity == null) 
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+
+                var files = Request.Form.Files;
+                if (files.Count > 0)
+                {
+                    for (int i = 0; i < files.Count; i++)
+                    {
+                        using (var ms = new MemoryStream()) // do async https://stackoverflow.com/questions/20805396/asynchronous-memory-streaming-approach-which-of-the-following
+                        {
+                            await files[i].CopyToAsync(ms);
+                            ad.GetType().GetProperty($"File{i + 1}")?.SetValue(ad, ms.ToArray());
+                        }
+                    }
+
+                    entity.File1 = ad.File1;
+                    entity.File2 = ad.File2;
+                    entity.File3 = ad.File3;
+                    entity.File4 = ad.File4;
+                    entity.File5 = ad.File5;
+                    entity.File6 = ad.File6;
+                    entity.File7 = ad.File7;
+                    entity.File8 = ad.File8;
+                }
+
+                entity.Name = ad.Name;
+                entity.Description = ad.Description;
+                entity.Price = ad.Price;
+                entity.CategoryId = ad.CategoryId;
+                entity.Phone = ad.Phone;
+                entity.UserName = ad.UserName;
+
+                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
+                //string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", ad.FileName);
+
+                //using (var stream = new FileStream(path, FileMode.Create))
+                //{
+                //    ad.FrontFile.CopyTo(stream);
+                //}
+
+                return StatusCode(StatusCodes.Status200OK);
             }
             catch (Exception ex)
             {
