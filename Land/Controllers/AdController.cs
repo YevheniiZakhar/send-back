@@ -42,6 +42,14 @@ namespace Land.Controllers
             return await _context.Locality.FromSqlRaw("call GetLocality({0})", str).ToListAsync();
         }
 
+        [HttpGet("getlocalityById")]
+        public async Task<IList<Localit>> GetLocalityById(string ids) //[FromBody] GetAdRequest request
+        {
+            // TODO наполнить базу данных до 1000 обьявлений
+            // TODO сделать привязку реакт к паганации на сервере через ентити фреймворк и таблицу в майсклюел обьявлений
+            return await _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", ids).ToListAsync();
+        }
+
         [HttpPost("filter")]
         public PagedResult<Ad> Post([FromBody] GetAdRequest request) //[FromBody] GetAdRequest request
         {
@@ -125,7 +133,7 @@ namespace Land.Controllers
         //}
 
         //api/ad/byId?id=1
-        [HttpGet("byId")]
+        [HttpGet("getbyId")]
         public Ad GetById(int id)
         {
             // TODO не показывать район если это город по примеру Кривой Рог, Днепропетровская а не Кривой Рог, Криворожский, Днепропетровская
