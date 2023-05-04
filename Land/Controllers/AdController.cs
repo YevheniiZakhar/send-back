@@ -133,7 +133,7 @@ namespace Land.Controllers
         //}
 
         //api/ad/byId?id=1
-        [HttpGet("getbyId")]
+        [HttpGet("getById")]
         public Ad GetById(int id)
         {
             // TODO не показывать район если это город по примеру Кривой Рог, Днепропетровская а не Кривой Рог, Криворожский, Днепропетровская
@@ -147,6 +147,23 @@ namespace Land.Controllers
             }
             
             return ad;
+            // GetPaged(2,3);
+            //string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "file-upload-article-cover.png");
+            //var b = System.IO.File.ReadAllBytes(path);
+            //items.ForEach(i => i.ByteFiles = b);
+
+        }
+
+        [HttpGet("getByUserEmail")]
+        public async Task<List<Ad>> GetByUserId(string email)
+        {
+            // TODO не показывать район если это город по примеру Кривой Рог, Днепропетровская а не Кривой Рог, Криворожский, Днепропетровская
+            var ads = await _context.Ad.Where(x => x.UserEmail == email).ToListAsync();
+            var locIds = string.Join(",", ads.Select(i => i.LocalityId));
+            var localities = _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", locIds).ToDictionary(x => x.Id, x => x.Locality);
+            ads.ForEach(i => i.Locality = localities[i.LocalityId.Value]);
+
+            return ads;
             // GetPaged(2,3);
             //string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "file-upload-article-cover.png");
             //var b = System.IO.File.ReadAllBytes(path);
@@ -249,13 +266,6 @@ namespace Land.Controllers
                 entity.UserName = ad.UserName;
 
                 await _context.SaveChangesAsync();
-                //await _context.SaveChangesAsync();
-                //string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", ad.FileName);
-
-                //using (var stream = new FileStream(path, FileMode.Create))
-                //{
-                //    ad.FrontFile.CopyTo(stream);
-                //}
 
                 return StatusCode(StatusCodes.Status200OK);
             }

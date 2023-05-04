@@ -1,5 +1,9 @@
 using Land.Schedule;
+using Land.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Quartz;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,11 +42,32 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(o =>
+{
+    o.TokenValidationParameters = new TokenValidationParameters
+    {
+        //ValidIssuer = "senduasendua",
+        //ValidAudience = "senduasendua",
+        IssuerSigningKey = new SymmetricSecurityKey
+        (Encoding.UTF8.GetBytes("senduasenduasenduasenduasenduasenduasenduasenduasenduasenduasenduasenduasenduasenduasenduasendua")),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = false,
+        ValidateIssuerSigningKey = true
+    };
+});
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<IAuthService, AuthService>();
 var app = builder.Build();
-
+app.MapGet("/security/getMessage", () => "Hello World!").RequireAuthorization();
 app.UseCors("landCorsPolicy");
 // Configure the HTTP request pipeline.
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
