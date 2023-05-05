@@ -53,7 +53,7 @@ namespace Land.Controllers
         [HttpPost("filter")]
         public PagedResult<Ad> Post([FromBody] GetAdRequest request) //[FromBody] GetAdRequest request
         {
-                IQueryable<Ad> items = _context.Ad;
+                IQueryable<Ad> items = _context.Ad.OrderByDescending(i => i.CreatedDate).Where(i => !i.Hidden);
 
             if (!string.IsNullOrEmpty(request.SearchInput))
             {
@@ -184,6 +184,19 @@ namespace Land.Controllers
             //var b = System.IO.File.ReadAllBytes(path);
             //items.ForEach(i => i.ByteFiles = b);
             return data;
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult> Delete(int id)
+        {
+            var item = await _context.Ad.FirstOrDefaultAsync(i => i.Id == id);
+
+            if (item == null)
+                return StatusCode(StatusCodes.Status400BadRequest);
+
+            item.Hidden = !item.Hidden;
+            await _context.SaveChangesAsync();
+            return StatusCode(StatusCodes.Status200OK);
         }
 
         [HttpPost]

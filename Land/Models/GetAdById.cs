@@ -21,6 +21,7 @@
             Phone = ad.Phone; 
             UserName = ad.UserName;
             CreatedDate = ad.CreatedDate;
+            Hidden = ad.Hidden;
         }
 
         public string Locality { get; set; }
