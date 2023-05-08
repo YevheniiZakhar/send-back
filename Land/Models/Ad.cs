@@ -26,23 +26,6 @@
 
         public int? LocalityId { get; set; }
 
-        //[NotMapped]
-        //public IFormFile[] FrontFiles { get; set; }
-        //[NotMapped]
-        //public string Str { get; set; }
-
-        //[NotMapped]
-        //public IFormFile FrontFile1 { get; set; }
-        //[NotMapped]
-        //public IFormFile FrontFile2 { get; set; }
-        //[NotMapped]
-        //public IFormFile FrontFile3 { get; set; }
-        //[NotMapped]
-        //public IFormFile FrontFile4 { get; set; }
-        //[NotMapped]
-        //public IFormFile FrontFile5 { get; set; }
-        //[NotMapped]
-        //public IFormFile FrontFile6 { get; set; }
         [NotMapped]
         public string? Locality { get; set; }
 

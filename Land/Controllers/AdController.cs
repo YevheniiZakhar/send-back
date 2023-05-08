@@ -8,11 +8,6 @@ namespace Land.Controllers
     [Route("[controller]")]
     public class AdController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
-
         private readonly ILogger<AdController> _logger;
         private readonly LandDbContext _context;
 
@@ -21,7 +16,6 @@ namespace Land.Controllers
             _logger = logger;
             _context = context;
         }
-
 
         [HttpGet("locality")]
         public async Task<IList<Localit>> Locality(string str) //[FromBody] GetAdRequest request
@@ -58,70 +52,10 @@ namespace Land.Controllers
             var locIds = string.Join(",", result.Results.Select(i => i.LocalityId));
             var localities = await _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", locIds).ToDictionaryAsync(x => x.Id, x => x.Locality);
             result.Results.ForEach(i => i.Locality = localities[i.LocalityId.Value]);
-            //locality.
-            //var emailAddressParam = new SqlParameter("@str", "Êè¿");
 
-            //var users = _context
-            //            .Ad
-            //            .FromSqlRaw("exec sp_GetUsers @emailAddress, @passwordHash", emailAddressParam)
-            //            .ToList();
-            // string sql = "EXEC GetLocality @str";
-
-            // var str = new MySqlParameter("str", "Êè¿");
-            // _context.Database.ExecuteSqlRaw()
-
-            //var kkkk = _context.SomeModels.FromSqlRaw("CALL land.GetLocality1").ToList();
-            //using (var con = new MySqlConnection("server=localhost;database=land;user=root;password=1234;port=3306;"))
-            //{ // https://www.codeproject.com/Questions/3432607/Csharp-async-await-not-working-with-mysql
-            //    con.Open();
-            //    using (var cmd = new MySqlCommand("GetLocality", con))
-            //    {
-            //        var list = new List<string>();
-            //        cmd.CommandType = CommandType.StoredProcedure;
-            //        cmd.Parameters.AddWithValue("@str", "Êè¿");
-            //        using (var reader = cmd.ExecuteReader())
-            //        {
-
-            //            while (reader.Read())
-            //            {
-            //                list.Add(reader["Locality"].ToString());
-            //            }
-            //        }
-
-            //        //var kkkk = reader.AsQueryable();
-            //        using (var sda = new MySqlDataAdapter(cmd))
-            //        {
-            //            DataTable dt = new DataTable();
-            //            var sss = new DataSet();
-            //            sda.Fill(dt);   
-            //            sda.Fill(sss);
-            //            //dt.AsDataView().
-            //            var ll = dt.AsEnumerable().Select(i => i.ItemArray[0]).ToList();
-            //        }
-            //    }
-            //    con.Close();
-            //}
-            //var items = _context.Ad.ToList(); // GetPaged(2,3);
-            //string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "file-upload-article-cover.png");
-            //var b = System.IO.File.ReadAllBytes(path);
-            //items.ForEach(i => i.ByteFiles = b);
             return result;
         }
 
-        //[HttpGet("locality")]
-        //public IQueryable<Locality> Locality([FromQuery] string param) //[FromBody] GetAdRequest request
-        //{
-        //    var items = _context.Locality.AsQueryable();
-            
-        //    if (!string.IsNullOrEmpty(param))
-        //    {
-        //        return items.Where(i => i.Title.StartsWith(param));
-        //    }
-
-        //    return items;
-        //}
-
-        //api/ad/byId?id=1
         [HttpGet("getById")]
         public async Task<Ad> GetById(int id)
         {
@@ -129,17 +63,12 @@ namespace Land.Controllers
             var ad = await _context.Ad.FirstOrDefaultAsync(x => x.Id == id);
             if (ad != null && ad.LocalityId != null && ad.LocalityId != 0)
             {
-                var locality = _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", ad.LocalityId).ToList();
-                var response = new AdById(ad);
-                response.Locality = locality.FirstOrDefault().Locality;
-                return response;
+                var localityResult = _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", ad.LocalityId).ToList();
+                ad.Locality = localityResult?.FirstOrDefault()?.Locality;
+                return ad;
             }
             
             return ad;
-            // GetPaged(2,3);
-            //string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "file-upload-article-cover.png");
-            //var b = System.IO.File.ReadAllBytes(path);
-            //items.ForEach(i => i.ByteFiles = b);
 
         }
 
@@ -153,11 +82,6 @@ namespace Land.Controllers
             ads.ForEach(i => i.Locality = localities[i.LocalityId.Value]);
 
             return ads;
-            // GetPaged(2,3);
-            //string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "file-upload-article-cover.png");
-            //var b = System.IO.File.ReadAllBytes(path);
-            //items.ForEach(i => i.ByteFiles = b);
-
         }
 
         [Route("data")]
@@ -168,10 +92,7 @@ namespace Land.Controllers
             {
                 Category = _context.Category.ToList()
             }; 
-            // GetPaged(2,3);
-            //string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "file-upload-article-cover.png");
-            //var b = System.IO.File.ReadAllBytes(path);
-            //items.ForEach(i => i.ByteFiles = b);
+
             return data;
         }
 
@@ -201,7 +122,8 @@ namespace Land.Controllers
                 {
                     for (int i = 0; i < files.Count; i++)
                     {
-                        using (var ms = new MemoryStream()) // do async https://stackoverflow.com/questions/20805396/asynchronous-memory-streaming-approach-which-of-the-following
+                        // TODO async https://stackoverflow.com/questions/20805396/asynchronous-memory-streaming-approach-which-of-the-following
+                        using (var ms = new MemoryStream()) 
                         {
                             await files[i].CopyToAsync(ms);
                             ad.GetType().GetProperty($"File{i + 1}")?.SetValue(ad, ms.ToArray());
@@ -211,12 +133,6 @@ namespace Land.Controllers
                 ad.CreatedDate = DateTime.Now;
                 await _context.Ad.AddAsync(ad);
                 await _context.SaveChangesAsync();
-                //string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", ad.FileName);
-
-                //using (var stream = new FileStream(path, FileMode.Create))
-                //{
-                //    ad.FrontFile.CopyTo(stream);
-                //}
 
                 return StatusCode(StatusCodes.Status201Created);
             }
@@ -243,7 +159,8 @@ namespace Land.Controllers
                 {
                     for (int i = 0; i < files.Count; i++)
                     {
-                        using (var ms = new MemoryStream()) // do async https://stackoverflow.com/questions/20805396/asynchronous-memory-streaming-approach-which-of-the-following
+                        // TODO async https://stackoverflow.com/questions/20805396/asynchronous-memory-streaming-approach-which-of-the-following
+                        using (var ms = new MemoryStream())
                         {
                             await files[i].CopyToAsync(ms);
                             ad.GetType().GetProperty($"File{i + 1}")?.SetValue(ad, ms.ToArray());

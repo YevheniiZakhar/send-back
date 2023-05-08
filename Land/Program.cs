@@ -1,28 +1,19 @@
-using Land.Schedule;
-using Land.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Quartz;
-using System.Text;
-
 var builder = WebApplication.CreateBuilder(args);
+// THIS IS SCHEDULER 
+// in case we need this just add Quartz and Quartz.Extensions.Hosting NUGETS
+//builder.Services.AddQuartz(q =>
+//{
+//    q.UseMicrosoftDependencyInjectionJobFactory();
+//    var jobKey = new JobKey("DemoJob");
+//    q.AddJob<DeleteAdTask>(opts => opts.WithIdentity(jobKey));
 
-// Add services to the container.
+//    q.AddTrigger(opts => opts
+//        .ForJob(jobKey)
+//        .WithIdentity("DemoJob-trigger")
+//        .WithCronSchedule("0 */5 * ? * *"));
 
-builder.Services.AddQuartz(q =>
-{
-    q.UseMicrosoftDependencyInjectionJobFactory();
-    var jobKey = new JobKey("DemoJob");
-    q.AddJob<DeleteAdTask>(opts => opts.WithIdentity(jobKey));
-
-    q.AddTrigger(opts => opts
-        .ForJob(jobKey)
-        .WithIdentity("DemoJob-trigger")
-        .WithCronSchedule("0 */5 * ? * *"));
-
-});
-builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+//});
+//builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 builder.Services.AddControllers();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -63,7 +54,7 @@ builder.Services.AddCors(options =>
 //    };
 //});
 //builder.Services.AddAuthorization();
-builder.Services.AddScoped<IAuthService, AuthService>();
+//builder.Services.AddScoped<IAuthService, AuthService>();
 var app = builder.Build();
 app.UseHttpsRedirection();
 //app.MapGet("/security/getMessage", () => "Hello World!").RequireAuthorization();
