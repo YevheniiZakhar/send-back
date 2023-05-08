@@ -1,6 +1,7 @@
 using Land.Schedule;
 using Land.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
 using System.Text;
@@ -29,7 +30,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // TODO https
 builder.Services.AddDbContext<LandDbContext>(options =>
 {
-    options.UseMySql("server=localhost;database=land;user=root;password=1234;port=3306;", ServerVersion.AutoDetect("server=localhost;database=land;user=root;password=1234;port=3306;"));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
 
 builder.Services.AddCors(options =>
