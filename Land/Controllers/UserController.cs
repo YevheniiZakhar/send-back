@@ -1,16 +1,7 @@
-using Google.Apis.Auth;
-using Land.Helpers;
-using Land.Models;
-using Land.Models.Help;
-using Land.Services;
+//using Land.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using static Google.Apis.Auth.GoogleJsonWebSignature;
-using static Google.Apis.Auth.JsonWebSignature;
 
 namespace Land.Controllers
 {
@@ -20,13 +11,13 @@ namespace Land.Controllers
     {
         //private readonly ILogger<AdController> _logger;
         private readonly LandDbContext _context;
-        private readonly IAuthService _authService;
+        //private readonly IAuthService _authService;
 
-        public UserController(LandDbContext context, IAuthService authService)
+        public UserController(LandDbContext context)//, IAuthService authService)
         {
             //_logger = logger;
             _context = context;
-            _authService = authService;
+            //_authService = authService;
         }
 
         //[HttpGet("google")]
@@ -88,7 +79,6 @@ namespace Land.Controllers
         //    return BadRequest();
         //}
 
-        [AllowAnonymous]
         [HttpGet("google")]
         public async Task<User> Google(string token)
         {
@@ -107,10 +97,7 @@ namespace Land.Controllers
                 }
 
                 return result;
-
-
                 //return _authService.Authenticate(payload.Email); //TODO do we really need that?
-
             }
             catch (Exception ex)
             {

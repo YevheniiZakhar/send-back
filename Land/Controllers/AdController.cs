@@ -1,17 +1,6 @@
-using Azure;
-using Land.Models;
 using Land.Models.Help;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-//using MySqlConnector;
-//using MySql.Data.MySqlClient;
-using MySqlConnector;
-using System;
 using System.Data;
-//using MySqlConnector;
-//using System.Data;
-//using System.Data.SqlClient;
-//using MySqlConnector;
 
 namespace Land.Controllers
 {
@@ -51,9 +40,9 @@ namespace Land.Controllers
         }
 
         [HttpPost("filter")]
-        public PagedResult<Ad> Post([FromBody] GetAdRequest request) //[FromBody] GetAdRequest request
+        public async Task<PagedResult<Ad>> Post([FromBody] GetAdRequest request) //[FromBody] GetAdRequest request
         {
-                IQueryable<Ad> items = _context.Ad.OrderByDescending(i => i.CreatedDate).Where(i => !i.Hidden);
+            IQueryable<Ad> items = _context.Ad.OrderByDescending(i => i.CreatedDate).Where(i => !i.Hidden);
 
             if (!string.IsNullOrEmpty(request.SearchInput))
             {
@@ -65,9 +54,9 @@ namespace Land.Controllers
                 items = items.Where(i => i.LocalityId == request.SearchLocality);
             }
 
-            var result = items.GetPaged(request.Page.Value, request.PageSize.Value);
+            var result = await items.GetPaged(request.Page.Value, request.PageSize.Value);
             var locIds = string.Join(",", result.Results.Select(i => i.LocalityId));
-            var localities = _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", locIds).ToDictionary(x => x.Id, x => x.Locality);
+            var localities = await _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", locIds).ToDictionaryAsync(x => x.Id, x => x.Locality);
             result.Results.ForEach(i => i.Locality = localities[i.LocalityId.Value]);
             //locality.
             //var emailAddressParam = new SqlParameter("@str", "Киї");
@@ -134,10 +123,10 @@ namespace Land.Controllers
 
         //api/ad/byId?id=1
         [HttpGet("getById")]
-        public Ad GetById(int id)
+        public async Task<Ad> GetById(int id)
         {
             // TODO не показывать район если это город по примеру Кривой Рог, Днепропетровская а не Кривой Рог, Криворожский, Днепропетровская
-            var ad = _context.Ad.FirstOrDefault(x => x.Id == id);
+            var ad = await _context.Ad.FirstOrDefaultAsync(x => x.Id == id);
             if (ad != null && ad.LocalityId != null && ad.LocalityId != 0)
             {
                 var locality = _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", ad.LocalityId).ToList();
