@@ -1,67 +1,72 @@
+
+
+using Microsoft.AspNetCore.Authentication;
+
 var builder = WebApplication.CreateBuilder(args);
-// THIS IS SCHEDULER 
-// in case we need this just add Quartz and Quartz.Extensions.Hosting NUGETS
-//builder.Services.AddQuartz(q =>
-//{
-//    q.UseMicrosoftDependencyInjectionJobFactory();
-//    var jobKey = new JobKey("DemoJob");
-//    q.AddJob<DeleteAdTask>(opts => opts.WithIdentity(jobKey));
-
-//    q.AddTrigger(opts => opts
-//        .ForJob(jobKey)
-//        .WithIdentity("DemoJob-trigger")
-//        .WithCronSchedule("0 */5 * ? * *"));
-
-//});
-//builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 builder.Services.AddControllers();
+builder.Services.AddSwaggerGen();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 // TODO add async await
 // TODO https
 builder.Services.AddDbContext<LandDbContext>(options =>
 {
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+  options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
+
+builder.Services.AddDbContext<ApplicationUserIdentityDbContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<ApplicationUserIdentityDbContext>();
+
+builder.Services.AddIdentityServer()
+    .AddApiAuthorization<ApplicationUser, ApplicationUserIdentityDbContext>();
+
+builder.Services.AddAuthentication()
+    .AddIdentityServerJwt()
+    .AddGoogle(googleOptions =>
+    {
+      googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+      googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    });
+
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("landCorsPolicy", builder => {
-        //builder.WithOrigins("http://localhost:800").AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-        //builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost");
-        //builder.SetIsOriginAllowed(origin => true);
-    });
+  options.AddPolicy("landCorsPolicy", builder =>
+  {
+    builder
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader();
+  });
 });
 
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-//}).AddJwtBearer(o =>
-//{
-//    o.TokenValidationParameters = new TokenValidationParameters
-//    {
-//        //ValidIssuer = "senduasendua",
-//        //ValidAudience = "senduasendua",
-//        IssuerSigningKey = new SymmetricSecurityKey
-//        (Encoding.UTF8.GetBytes("senduasenduasenduasenduasenduasenduasenduasenduasenduasenduasenduasenduasenduasenduasenduasendua")),
-//        ValidateIssuer = false,
-//        ValidateAudience = false,
-//        ValidateLifetime = false,
-//        ValidateIssuerSigningKey = true
-//    };
-//});
-//builder.Services.AddAuthorization();
-//builder.Services.AddScoped<IAuthService, AuthService>();
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+  app.UseSwagger();
+  app.UseSwaggerUI();
+}
+else
+{
+  // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+  app.UseHsts();
+}
+
 app.UseHttpsRedirection();
-//app.MapGet("/security/getMessage", () => "Hello World!").RequireAuthorization();
+app.UseStaticFiles();
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseIdentityServer();
+app.UseAuthorization();
+
+app.UseHttpsRedirection();
 app.UseCors("landCorsPolicy");
-// Configure the HTTP request pipeline.
-//app.UseAuthentication();
-//app.UseAuthorization();
 
 app.MapControllers();
 
