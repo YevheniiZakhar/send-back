@@ -1,9 +1,12 @@
-import './App.css';
+import { Button, Typography } from '@mui/material';
 
 const App = () => {
   return (
     <div className="App">
-      <p>HUI</p>
+      <Typography variant="h1">Hello World</Typography>
+      <Button variant="contained" color="primary">
+        Hello World
+      </Button>
     </div>
   );
 };
