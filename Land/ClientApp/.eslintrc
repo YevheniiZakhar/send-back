@@ -46,6 +46,10 @@
         "argsIgnorePattern": "^_"
       }
     ],
-    "no-case-declarations": 0
-  }
+    "no-case-declarations": 0,
+  },
+  "ignorePatterns": [
+    "aspnetcore-https.js",
+    "aspnetcore-react.js",
+  ]
 }
