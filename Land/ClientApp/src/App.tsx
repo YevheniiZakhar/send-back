@@ -1,14 +1,8 @@
-import { Button, Typography } from '@mui/material';
+import React from 'react';
+import Navigation from './Routing/Navigation';
 
 const App = () => {
-  return (
-    <div className="App">
-      <Typography variant="h1">Hello World</Typography>
-      <Button variant="contained" color="primary">
-        Hello World
-      </Button>
-    </div>
-  );
+  return <Navigation />;
 };
 
 export default App;
