@@ -44,16 +44,22 @@ const Layout = observer(() => {
         open={navMenuOpenStore.isOpen}
         handleDrawerClose={() => navMenuOpenStore.toggle()}
       />
-      <Main open={navMenuOpenStore.isOpen}>
+      <Main
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: '1fr',
+        }}
+        open={navMenuOpenStore.isOpen}
+      >
         <DrawerHeader />
         <Outlet />
+        <Box
+          component="footer"
+          sx={{ alignSelf: 'end', justifySelf: 'center' }}
+        >
+          Footer
+        </Box>
       </Main>
-      <Box
-        component="footer"
-        sx={{ alignSelf: 'flex-end', justifySelf: 'flex-end' }}
-      >
-        Footer
-      </Box>
     </Box>
   );
 });

@@ -54,6 +54,7 @@ export default function AdCard(prop: IAdCardProps) {
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         raised={isHovered}
+        elevation={isHovered ? 10 : 3}
       >
         <Sheet
           sx={{
