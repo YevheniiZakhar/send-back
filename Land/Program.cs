@@ -1,3 +1,9 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
 var builder = WebApplication.CreateBuilder(args);
 // THIS IS SCHEDULER 
 // in case we need this just add Quartz and Quartz.Extensions.Hosting NUGETS
@@ -56,7 +62,14 @@ builder.Services.AddCors(options =>
 //builder.Services.AddAuthorization();
 //builder.Services.AddScoped<IAuthService, AuthService>();
 var app = builder.Build();
+
+ // Serve the React app from wwwroot
+app.UseDefaultFiles(); // This middleware will look for default files like index.html
+app.UseStaticFiles(); // This middleware will serve the static files in the wwwroot folder
+
+
 app.UseHttpsRedirection();
+app.UseRouting();
 //app.MapGet("/security/getMessage", () => "Hello World!").RequireAuthorization();
 app.UseCors("landCorsPolicy");
 // Configure the HTTP request pipeline.
