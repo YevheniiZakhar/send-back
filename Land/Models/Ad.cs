@@ -1,5 +1,6 @@
 ﻿namespace Land.Models
 {
+    [Table("Ad")]
     [Index(nameof(Name), IsUnique = true)]
     public class Ad
     {   

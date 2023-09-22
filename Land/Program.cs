@@ -1,8 +1,4 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 // THIS IS SCHEDULER 
@@ -27,7 +23,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // TODO https
 builder.Services.AddDbContext<LandDbContext>(options =>
 {
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+    options.UseSqlServer(connectionString);
 });
 
 builder.Services.AddCors(options =>

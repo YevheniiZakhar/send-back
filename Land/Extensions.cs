@@ -8,6 +8,7 @@
             var result = new PagedResult<T>();
             result.CurrentPage = page;
             result.PageSize = pageSize;
+            
             result.RowCount = query.Count();
 
 
