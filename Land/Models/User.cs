@@ -1,5 +1,6 @@
 ﻿namespace Land.Models
 {
+    [Table("user", Schema = "land")]
     public class User
     {
         public int Id { get; set; }

@@ -1,6 +1,6 @@
 ﻿namespace Land.Models
 {
-    [Table("Ad")]
+    [Table("ad2", Schema = "land")]
     [Index(nameof(Name), IsUnique = true)]
     public class Ad
     {   
@@ -38,6 +38,6 @@
 
         public DateTime? CreatedDate {  get; set; }
 
-        public bool Hidden { get; set; }
+        public bool? Hidden { get; set; } = false;
     }
 }

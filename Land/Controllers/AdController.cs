@@ -1,5 +1,7 @@
+using Land.Models;
 using Land.Models.Help;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using System.Data;
 
 namespace Land.Controllers
@@ -22,7 +24,11 @@ namespace Land.Controllers
         {
             // TODO наполнить базу данных до 1000 обьявлений
             // TODO сделать привязку реакт к паганации на сервере через ентити фреймворк и таблицу в майсклюел обьявлений
-            return await _context.Locality.FromSqlRaw("call GetLocality({0})", str).ToListAsync();
+            var param = new SqlParameter("str", str);
+            var localities = await _context.Locality
+                .FromSqlRaw($"execute [land].[GetLocality] @str", param)
+                .ToListAsync();
+            return localities.Where(i => i.Locality != null).ToList();
         }
 
         [HttpGet("getlocalityById")]
@@ -30,13 +36,14 @@ namespace Land.Controllers
         {
             // TODO наполнить базу данных до 1000 обьявлений
             // TODO сделать привязку реакт к паганации на сервере через ентити фреймворк и таблицу в майсклюел обьявлений
-            return await _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", ids).ToListAsync();
+            var param = new SqlParameter("ids", ids);
+            return await _context.Locality.FromSqlRaw($"execute [land].[GetLocalityByIds] @ids", param).ToListAsync();
         }
 
         [HttpPost("filter")]
         public async Task<PagedResult<Ad>> Post([FromBody] GetAdRequest request) //[FromBody] GetAdRequest request
         {
-            IQueryable<Ad> items = _context.Ad.OrderByDescending(i => i.CreatedDate).Where(i => !i.Hidden);
+            IQueryable<Ad> items = _context.Ad.OrderByDescending(i => i.CreatedDate).Where(i => !i.Hidden.Value);
 
             if (!string.IsNullOrEmpty(request.SearchInput))
             {
@@ -50,9 +57,13 @@ namespace Land.Controllers
 
             var result = await items.GetPaged(request.Page.Value, request.PageSize.Value);
             var locIds = string.Join(",", result.Results.Select(i => i.LocalityId));
-            var localities = await _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", locIds).ToDictionaryAsync(x => x.Id, x => x.Locality);
-            result.Results.ForEach(i => i.Locality = localities[i.LocalityId.Value]);
-
+            if (!string.IsNullOrEmpty(locIds))
+            {
+                var ids = new SqlParameter("ids", locIds);
+                var localities = await _context.Locality.FromSqlRaw($"exec [land].[GetLocalityByIds] @ids", ids).ToDictionaryAsync(x => x.Id, x => x.Locality);
+                result.Results.ForEach(i => i.Locality = localities[i.LocalityId.Value]);
+            }
+            
             return result;
         }
 
@@ -63,7 +74,8 @@ namespace Land.Controllers
             var ad = await _context.Ad.FirstOrDefaultAsync(x => x.Id == id);
             if (ad != null && ad.LocalityId != null && ad.LocalityId != 0)
             {
-                var localityResult = _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", ad.LocalityId).ToList();
+                var ids = new SqlParameter("ids", ad.LocalityId);
+                var localityResult = _context.Locality.FromSqlRaw($"execute [land].[GetLocalityByIds] @ids", ids).ToList();
                 ad.Locality = localityResult?.FirstOrDefault()?.Locality;
                 return ad;
             }
@@ -78,7 +90,8 @@ namespace Land.Controllers
             // TODO не показывать район если это город по примеру Кривой Рог, Днепропетровская а не Кривой Рог, Криворожский, Днепропетровская
             var ads = await _context.Ad.Where(x => x.UserEmail == email).ToListAsync();
             var locIds = string.Join(",", ads.Select(i => i.LocalityId));
-            var localities = _context.Locality.FromSqlRaw("call GetLocalityByIds({0})", locIds).ToDictionary(x => x.Id, x => x.Locality);
+            var ids = new SqlParameter("ids", locIds);
+            var localities = _context.Locality.FromSqlRaw($"execute [land].[GetLocalityByIds] @ids", ids).ToDictionary(x => x.Id, x => x.Locality);
             ads.ForEach(i => i.Locality = localities[i.LocalityId.Value]);
 
             return ads;

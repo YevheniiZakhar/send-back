@@ -1,9 +1,10 @@
 ﻿namespace Land.Data
 {
+    [Table("locality2", Schema = "land")]
     public class Localit
     {
-        public int Id { get; set; }
-        public string Locality {  get; set; }
+        public Int64 Id { get; set; }
+        public string? Locality {  get; set; }
     }
     public class LandDbContext : DbContext
     {
